@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, PanResponder, Animated, Dimensions } from 'react-native';
 
 const GRID_SIZE = 5;
@@ -17,6 +17,8 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
   const [grid, setGrid] = useState(Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(0)));
   const [pieces, setPieces] = useState([]);
   const [timeLeft, setTimeLeft] = useState(settings?.puzzleTimer || 60);
+  const [gridLayout, setGridLayout] = useState({ x: 0, y: 0 });
+  const gridRef = useRef(null);
 
   useEffect(() => {
     generatePieces();
@@ -42,7 +44,22 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
     setPieces(newPieces);
   };
 
-  const handlePlacePiece = (piece, gridX, gridY) => {
+  const onGridLayout = (event) => {
+    const { x, y } = event.nativeEvent.layout;
+    // We need absolute position. In a centered view, we can use measure or estimate.
+    // For web/simplified native, we'll try to get it more reliably.
+    if (gridRef.current) {
+      gridRef.current.measure((fx, fy, width, height, px, py) => {
+        setGridLayout({ x: px, y: py });
+      });
+    }
+  };
+
+  const handlePlacePiece = (piece, gestureX, gestureY) => {
+    // Calculate grid coordinates based on gesture position and grid's screen position
+    const gridX = Math.round((gestureX - gridLayout.x) / CELL_SIZE);
+    const gridY = Math.round((gestureY - gridLayout.y) / CELL_SIZE);
+
     for (const [dx, dy] of piece.cells) {
       const nx = gridX + dx;
       const ny = gridY + dy;
@@ -97,7 +114,11 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
         </Text>
       </View>
 
-      <View style={styles.grid}>
+      <View
+        ref={gridRef}
+        onLayout={onGridLayout}
+        style={styles.grid}
+      >
         {grid.map((row, y) => (
           <View key={y} style={styles.row}>
             {row.map((cell, x) => (
@@ -116,11 +137,7 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
           <DraggablePiece
             key={piece.instanceId}
             piece={piece}
-            onDrop={(x, y) => {
-              const gridX = Math.round((x - (SCREEN_WIDTH - GRID_SIZE * CELL_SIZE) / 2) / CELL_SIZE);
-              const gridY = Math.round((y - 150) / CELL_SIZE);
-              return handlePlacePiece(piece, gridX, gridY);
-            }}
+            onDrop={(x, y) => handlePlacePiece(piece, x, y)}
           />
         ))}
       </View>
@@ -172,6 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+    backgroundColor: '#fff',
   },
   timerContainer: {
     marginBottom: 20,
