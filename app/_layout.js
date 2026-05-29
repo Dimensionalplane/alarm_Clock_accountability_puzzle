@@ -33,6 +33,7 @@ export default function RootLayout() {
       <Stack.Screen name="index" options={{ title: 'Alarms' }} />
       <Stack.Screen name="wallet" options={{ title: 'Wallet' }} />
       <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      <Stack.Screen name="dashboard" options={{ title: 'System Dashboard' }} />
       <Stack.Screen name="trigger" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
     </Stack>
   );

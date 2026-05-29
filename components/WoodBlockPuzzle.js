@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, PanResponder, Animated, Dimensions } from 'react-native';
 
 const GRID_SIZE = 5;
-const CELL_SIZE = 50;
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const CELL_SIZE = Math.min(50, (Dimensions.get('window').width - 60) / GRID_SIZE);
 
 const SHAPES = [
   { id: '1', cells: [[0, 0], [0, 1], [1, 0], [1, 1]] }, // 2x2 Square
@@ -18,7 +17,19 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
   const [pieces, setPieces] = useState([]);
   const [timeLeft, setTimeLeft] = useState(settings?.puzzleTimer || 60);
   const [gridLayout, setGridLayout] = useState({ x: 0, y: 0 });
-  const gridRef = useRef(null);
+
+  // Use refs to avoid stale closures in PanResponder
+  const gridRef = useRef(grid);
+  const piecesRef = useRef(pieces);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    gridRef.current = grid;
+  }, [grid]);
+
+  useEffect(() => {
+    piecesRef.current = pieces;
+  }, [pieces]);
 
   useEffect(() => {
     generatePieces();
@@ -45,62 +56,83 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
   };
 
   const onGridLayout = (event) => {
-    const { x, y } = event.nativeEvent.layout;
-    // We need absolute position. In a centered view, we can use measure or estimate.
-    // For web/simplified native, we'll try to get it more reliably.
-    if (gridRef.current) {
-      gridRef.current.measure((fx, fy, width, height, px, py) => {
+    if (containerRef.current) {
+      containerRef.current.measure((fx, fy, width, height, px, py) => {
         setGridLayout({ x: px, y: py });
       });
     }
   };
 
-  const handlePlacePiece = (piece, gestureX, gestureY) => {
-    // Calculate grid coordinates based on gesture position and grid's screen position
+  const handlePlacePiece = (pieceId, gestureX, gestureY) => {
+    const piece = piecesRef.current.find(p => p.instanceId === pieceId);
+    if (!piece) return false;
+
+    const currentGrid = gridRef.current;
     const gridX = Math.round((gestureX - gridLayout.x) / CELL_SIZE);
     const gridY = Math.round((gestureY - gridLayout.y) / CELL_SIZE);
 
+    // Validate placement
     for (const [dx, dy] of piece.cells) {
       const nx = gridX + dx;
       const ny = gridY + dy;
-      if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE || grid[ny][nx] !== 0) {
+      if (nx < 0 || nx >= GRID_SIZE || ny < 0 || ny >= GRID_SIZE || currentGrid[ny][nx] !== 0) {
         return false;
       }
     }
 
-    const newGrid = grid.map(row => [...row]);
+    // Place piece
+    const newGrid = currentGrid.map(row => [...row]);
     for (const [dx, dy] of piece.cells) {
       newGrid[gridY + dy][gridX + dx] = 1;
     }
 
-    let linesCleared = 0;
-    const finalGrid = newGrid.map(row => [...row]);
+    // Identify lines to clear
+    const rowsToClear = [];
+    const colsToClear = [];
 
     for (let y = 0; y < GRID_SIZE; y++) {
-      if (finalGrid[y].every(cell => cell === 1)) {
-        finalGrid[y] = Array(GRID_SIZE).fill(0);
-        linesCleared++;
+      if (newGrid[y].every(cell => cell === 1)) {
+        rowsToClear.push(y);
       }
     }
+
     for (let x = 0; x < GRID_SIZE; x++) {
       let full = true;
       for (let y = 0; y < GRID_SIZE; y++) {
-        if (finalGrid[y][x] !== 1) full = false;
+        if (newGrid[y][x] !== 1) {
+          full = false;
+          break;
+        }
       }
       if (full) {
-        for (let y = 0; y < GRID_SIZE; y++) finalGrid[y][x] = 0;
-        linesCleared++;
+        colsToClear.push(x);
       }
     }
 
+    // Clear lines
+    const finalGrid = newGrid.map(row => [...row]);
+    rowsToClear.forEach(y => {
+      finalGrid[y] = Array(GRID_SIZE).fill(0);
+    });
+    colsToClear.forEach(x => {
+      for (let y = 0; y < GRID_SIZE; y++) {
+        finalGrid[y][x] = 0;
+      }
+    });
+
+    const linesCleared = rowsToClear.length + colsToClear.length;
     setGrid(finalGrid);
-    setPieces(prev => prev.filter(p => p.instanceId !== piece.instanceId));
+
+    const remainingPieces = piecesRef.current.filter(p => p.instanceId !== pieceId);
+    if (remainingPieces.length === 0) {
+      generatePieces();
+    } else {
+      setPieces(remainingPieces);
+    }
 
     const winCondition = settings?.difficulty === 'hard' ? 2 : 1;
     if (linesCleared >= winCondition) {
       onSuccess();
-    } else if (pieces.length === 1) {
-      generatePieces();
     }
 
     return true;
@@ -115,7 +147,7 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
       </View>
 
       <View
-        ref={gridRef}
+        ref={containerRef}
         onLayout={onGridLayout}
         style={styles.grid}
       >
@@ -137,7 +169,7 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
           <DraggablePiece
             key={piece.instanceId}
             piece={piece}
-            onDrop={(x, y) => handlePlacePiece(piece, x, y)}
+            onDrop={(x, y) => handlePlacePiece(piece.instanceId, x, y)}
           />
         ))}
       </View>
@@ -146,9 +178,9 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
 }
 
 function DraggablePiece({ piece, onDrop }) {
-  const pan = useState(new Animated.ValueXY())[0];
+  const pan = useRef(new Animated.ValueXY()).current;
 
-  const panResponder = useState(
+  const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
@@ -156,30 +188,35 @@ function DraggablePiece({ piece, onDrop }) {
         const success = onDrop(gesture.moveX, gesture.moveY);
         if (!success) {
           Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
+        } else {
+          // Success! Reset position for next use (though this piece instance is removed)
+          pan.setValue({ x: 0, y: 0 });
         }
       },
     })
-  )[0];
+  ).current;
 
   return (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={[
-        pan.getLayout(),
-        styles.piece,
-        { width: CELL_SIZE * 2, height: CELL_SIZE * 2 }
-      ]}
-    >
-      {piece.cells.map(([dx, dy], index) => (
-        <View
-          key={index}
-          style={[
-            styles.pieceCell,
-            { left: dx * CELL_SIZE, top: dy * CELL_SIZE }
-          ]}
-        />
-      ))}
-    </Animated.View>
+    <View style={styles.pieceWrapper}>
+      <Animated.View
+        {...panResponder.panHandlers}
+        style={[
+          pan.getLayout(),
+          styles.piece,
+          { width: CELL_SIZE * 2, height: CELL_SIZE * 2 }
+        ]}
+      >
+        {piece.cells.map(([dx, dy], index) => (
+          <View
+            key={index}
+            style={[
+              styles.pieceCell,
+              { left: dx * CELL_SIZE, top: dy * CELL_SIZE }
+            ]}
+          />
+        ))}
+      </Animated.View>
+    </View>
   );
 }
 
@@ -224,16 +261,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6c757d',
     fontStyle: 'italic',
+    textAlign: 'center',
   },
   piecesContainer: {
     flexDirection: 'row',
     marginTop: 40,
-    height: CELL_SIZE * 3,
+    height: CELL_SIZE * 3.5,
     width: '100%',
     justifyContent: 'space-around',
+    flexWrap: 'wrap',
+  },
+  pieceWrapper: {
+    width: CELL_SIZE * 2.5,
+    height: CELL_SIZE * 2.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   piece: {
     position: 'relative',
+    zIndex: 100,
   },
   pieceCell: {
     position: 'absolute',

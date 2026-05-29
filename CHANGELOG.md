@@ -1,6 +1,6 @@
 # SnoozeTax Changelog
 
-## [1.0.0] - 2024-05-29
+## [1.1.0] - 2024-05-29
 ### Added
 - Core Alarm Engine with recurring weekday support.
 - Pre-paid Wallet system with transaction history.

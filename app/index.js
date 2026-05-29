@@ -41,17 +41,22 @@ export default function AlarmListScreen() {
     setBalance(currentBalance);
   };
 
-  const toggleDay = (dayIndex) => {
-    if (selectedDays.includes(dayIndex)) {
-      setSelectedDays(selectedDays.filter(d => d !== dayIndex));
-    } else {
-      setSelectedDays([...selectedDays, dayIndex].sort());
-    }
+  const validateTime = (timeStr) => {
+    const parts = timeStr.split(':');
+    if (parts.length !== 2) return false;
+    const h = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    return !isNaN(h) && !isNaN(m) && h >= 0 && h < 24 && m >= 0 && m < 60;
   };
 
   const handleAddAlarm = async () => {
     if (balance <= 0) {
       Alert.alert('Low Balance', 'You must have at least some money in your wallet to set an alarm.');
+      return;
+    }
+
+    if (!validateTime(newTime)) {
+      Alert.alert('Invalid Time', 'Please enter time in HH:MM format (e.g., 07:00).');
       return;
     }
 
@@ -146,6 +151,9 @@ export default function AlarmListScreen() {
           <Text style={styles.balanceValue}>${balance.toFixed(2)}</Text>
         </View>
         <View style={styles.headerButtons}>
+          <TouchableOpacity onPress={() => router.push('/dashboard')} style={styles.headerButton}>
+            <Ionicons name="stats-chart-outline" size={24} color="#6c757d" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/settings')} style={styles.headerButton}>
             <Ionicons name="settings-outline" size={24} color="#6c757d" />
           </TouchableOpacity>
