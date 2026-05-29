@@ -9,6 +9,7 @@ export default function SettingsScreen() {
     difficulty: 'medium',
     puzzleTimer: 60,
   });
+  const [penaltyText, setPenaltyText] = useState('1.00');
 
   useEffect(() => {
     loadSettings();
@@ -17,6 +18,7 @@ export default function SettingsScreen() {
   const loadSettings = async () => {
     const currentSettings = await getSettings();
     setSettings(currentSettings);
+    setPenaltyText(currentSettings.penaltyAmount.toFixed(2));
   };
 
   const handleSave = async (newSettings) => {
@@ -24,8 +26,9 @@ export default function SettingsScreen() {
     setSettings(updated);
   };
 
-  const handlePenaltyChange = (text) => {
-    const amount = parseFloat(text) || 0;
+  const onPenaltyEndEditing = () => {
+    const amount = parseFloat(penaltyText) || 0;
+    setPenaltyText(amount.toFixed(2));
     handleSave({ ...settings, penaltyAmount: amount });
   };
 
@@ -47,8 +50,9 @@ export default function SettingsScreen() {
             <TextInput
               style={styles.input}
               keyboardType="decimal-pad"
-              value={settings.penaltyAmount.toFixed(2)}
-              onChangeText={handlePenaltyChange}
+              value={penaltyText}
+              onChangeText={setPenaltyText}
+              onEndEditing={onPenaltyEndEditing}
             />
           </View>
         </View>

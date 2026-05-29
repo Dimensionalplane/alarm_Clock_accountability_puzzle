@@ -6,11 +6,5 @@ Starting project at /app
 Starting Metro Bundler
 Waiting on http://localhost:8081
 Logs for your project will appear below.
-Web Bundled 1918ms node_modules/expo-router/entry.js (939 modules)
- LOG  [web] Logs will appear in the browser console
-Web Bundled 50ms node_modules/expo-router/entry.js (1 module)
- LOG  [web] Logs will appear in the browser console
-Web Bundled 54ms node_modules/expo-router/entry.js (1 module)
- LOG  [web] Logs will appear in the browser console
-Web Bundled 52ms node_modules/expo-router/entry.js (1 module)
+Web Bundled 1327ms node_modules/expo-router/entry.js (871 modules)
  LOG  [web] Logs will appear in the browser console

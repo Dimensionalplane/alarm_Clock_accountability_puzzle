@@ -49,40 +49,48 @@ export async function saveAlarms(alarms) {
 }
 
 export async function scheduleAlarm(alarm) {
-  if (Platform.OS === 'web') return 'web-id';
+  if (Platform.OS === 'web') return ['web-id'];
 
-  const trigger = new Date();
   const [hours, minutes] = alarm.time.split(':').map(Number);
-  trigger.setHours(hours);
-  trigger.setMinutes(minutes);
-  trigger.setSeconds(0);
 
-  if (trigger <= new Date()) {
-    trigger.setDate(trigger.getDate() + 1);
-  }
+  // Schedule a notification for each selected day
+  const notificationIds = await Promise.all(alarm.days.map(async (day) => {
+    // day is 0-6 (Sun-Sat), matching expo-notifications
+    return await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Wake Up! ⏰",
+        body: "Time to get up or pay the Snooze Tax!",
+        data: { alarmId: alarm.id, type: 'alarm' },
+        categoryIdentifier: 'alarm',
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        ios: {
+          sound: true,
+          critical: true,
+          volume: 1.0,
+        },
+      },
+      trigger: {
+        hour: hours,
+        minute: minutes,
+        weekday: day + 1, // expo-notifications weekday is 1-7
+        repeats: true,
+      },
+    });
+  }));
 
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: "Wake Up! ⏰",
-      body: "Time to get up or pay the Snooze Tax!",
-      data: { alarmId: alarm.id, type: 'alarm' },
-      categoryIdentifier: 'alarm',
-      sound: true,
-      priority: Notifications.AndroidNotificationPriority.HIGH,
-    },
-    trigger: {
-      hour: trigger.getHours(),
-      minute: trigger.getMinutes(),
-      repeats: true,
-    },
-  });
-
-  return id;
+  return notificationIds; // Now returns an array
 }
 
-export async function cancelAlarm(notificationId) {
-  if (notificationId && Platform.OS !== 'web') {
-    await Notifications.cancelScheduledNotificationAsync(notificationId);
+export async function cancelAlarm(notificationIds) {
+  if (!notificationIds) return;
+
+  const ids = Array.isArray(notificationIds) ? notificationIds : [notificationIds];
+
+  for (const id of ids) {
+    if (id && Platform.OS !== 'web') {
+      await Notifications.cancelScheduledNotificationAsync(id);
+    }
   }
 }
 
@@ -99,6 +107,11 @@ export async function snoozeAlarm(alarm, minutes = 9) {
       data: { alarmId: alarm.id, type: 'alarm' },
       categoryIdentifier: 'alarm',
       sound: true,
+      ios: {
+        sound: true,
+        critical: true,
+        volume: 1.0,
+      },
     },
     trigger,
   });
