@@ -6,6 +6,10 @@ const DEFAULT_SETTINGS = {
   penaltyAmount: 1.00,
   difficulty: 'medium', // 'easy', 'medium', 'hard'
   puzzleTimer: 60,
+  penaltyConfig: {
+    type: 'flat', // 'flat' or 'incremental'
+    increment: 0.50,
+  }
 };
 
 export async function getSettings() {

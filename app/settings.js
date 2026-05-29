@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Switch } from 'react-native';
 import { getSettings, saveSettings } from '../services/settings';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -8,6 +8,7 @@ export default function SettingsScreen() {
     penaltyAmount: 1.00,
     difficulty: 'medium',
     puzzleTimer: 60,
+    penaltyConfig: { type: 'flat', increment: 0.50 }
   });
   const [penaltyText, setPenaltyText] = useState('1.00');
 
@@ -39,12 +40,20 @@ export default function SettingsScreen() {
     handleSave({ ...settings, difficulty, puzzleTimer: timer });
   };
 
+  const togglePenaltyType = () => {
+    const newType = settings.penaltyConfig.type === 'flat' ? 'incremental' : 'flat';
+    handleSave({
+      ...settings,
+      penaltyConfig: { ...settings.penaltyConfig, type: newType }
+    });
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Penalty Customization</Text>
         <View style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Penalty per Snooze/Fail</Text>
+          <Text style={styles.settingLabel}>Base Penalty</Text>
           <View style={styles.inputContainer}>
             <Text style={styles.currency}>$</Text>
             <TextInput
@@ -55,6 +64,17 @@ export default function SettingsScreen() {
               onEndEditing={onPenaltyEndEditing}
             />
           </View>
+        </View>
+
+        <View style={[styles.settingItem, { marginTop: 20 }]}>
+          <View>
+            <Text style={styles.settingLabel}>Incremental Penalty</Text>
+            <Text style={styles.settingSubLabel}>Increases with each snooze</Text>
+          </View>
+          <Switch
+            value={settings.penaltyConfig.type === 'incremental'}
+            onValueChange={togglePenaltyType}
+          />
         </View>
       </View>
 
@@ -123,6 +143,10 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     color: '#495057',
+  },
+  settingSubLabel: {
+    fontSize: 12,
+    color: '#6c757d',
   },
   inputContainer: {
     flexDirection: 'row',
