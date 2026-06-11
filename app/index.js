@@ -41,6 +41,14 @@ export default function AlarmListScreen() {
     setBalance(currentBalance);
   };
 
+  const toggleDay = (dayIndex) => {
+    if (selectedDays.includes(dayIndex)) {
+      setSelectedDays(selectedDays.filter(d => d !== dayIndex));
+    } else {
+      setSelectedDays([...selectedDays, dayIndex].sort());
+    }
+  };
+
   const validateTime = (timeStr) => {
     const parts = timeStr.split(':');
     if (parts.length !== 2) return false;
