@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getBalance, getHistory } from '../services/wallet';
 
 const BACKEND_URL = 'http://localhost:8080';
 
@@ -8,10 +9,46 @@ export default function SystemDashboard() {
   const [statuses, setStatuses] = useState([]);
   const [logs, setLogs] = useState([]);
   const [isReplaying, setIsReplaying] = useState(false);
+  const [userMetrics, setUserMetrics] = useState({
+    balance: 0,
+    totalTax: 0,
+    successCount: 0,
+    failCount: 0
+  });
 
   useEffect(() => {
     fetchStatus();
+    loadUserMetrics();
   }, []);
+
+  const loadUserMetrics = async () => {
+    const balance = await getBalance();
+    const history = await getHistory();
+
+    let totalTax = 0;
+    let successCount = 0;
+    let failCount = 0;
+
+    history.forEach(entry => {
+      if (entry.type === 'tax') {
+        totalTax += entry.amount;
+        if (entry.description.includes('Failure')) {
+          failCount++;
+        }
+      } else if (entry.description.includes('Success')) {
+          // Note: In our current implementation we don't always log success entries to history
+          // But we can infer success if we implement it.
+          // For now let's use what we have.
+      }
+    });
+
+    setUserMetrics({
+      balance,
+      totalTax,
+      successCount, // Placeholder or implement success logging
+      failCount
+    });
+  };
 
   const fetchStatus = async () => {
     try {
@@ -44,6 +81,24 @@ export default function SystemDashboard() {
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>User Stats</Text>
+        <View style={styles.metricsGrid}>
+          <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>Balance</Text>
+            <Text style={styles.metricValue}>${userMetrics.balance.toFixed(2)}</Text>
+          </View>
+          <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>Total Tax Paid</Text>
+            <Text style={[styles.metricValue, { color: '#dc3545' }]}>${userMetrics.totalTax.toFixed(2)}</Text>
+          </View>
+          <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>Alarm Failures</Text>
+            <Text style={styles.metricValue}>{userMetrics.failCount}</Text>
+          </View>
+        </View>
+      </View>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Git Submodule Status</Text>
         {statuses.length > 0 ? (
@@ -102,6 +157,27 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
+    color: '#212529',
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  metricItem: {
+    width: '30%',
+    alignItems: 'center',
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: '#6c757d',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  metricValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#212529',
   },
   statusItem: {
