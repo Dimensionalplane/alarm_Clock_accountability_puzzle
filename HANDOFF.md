@@ -1,14 +1,40 @@
-# SnoozeTax Handoff
+# SnoozeTax Production Handoff & Deployment Guide
 
-### Status
-The SnoozeTax application is fully implemented as a React Native / Expo (SDK 52) mobile app.
+### Deployment Status
+SnoozeTax is at version **1.1.0** and is ready for production builds.
 
-### Key Modifications
-- **Project Structure**: Organized into `app/` (routes), `components/` (UI), and `services/` (logic).
-- **Storage**: Unified `services/storage.js` handles both `expo-secure-store` and `localStorage`.
-- **Alarms**: `services/alarm.js` schedules unique notifications for each selected weekday to ensure precision.
-- **Puzzle**: `components/WoodBlockPuzzle.js` uses dynamic measurement for hit detection.
+### Production Build Instructions
 
-### Verified
-- Unit tests pass (`npm test`).
-- Visual verification completed for all primary user flows.
+#### 1. Web Deployment
+Export the web-optimized bundle:
+```bash
+npm run build:web
+```
+The output will be in the `dist/` directory. This can be hosted on static platforms like Netlify, Vercel, or GitHub Pages.
+
+#### 2. Android Deployment (AAB/APK)
+Build using EAS (Expo Application Services):
+```bash
+# Ensure you have eas-cli installed: npm install -g eas-cli
+eas build --platform android
+```
+*Note: Requires an Expo account and configuration in eas.json.*
+
+#### 3. iOS Deployment (IPA)
+Build using EAS:
+```bash
+eas build --platform ios
+```
+*Note: Requires an Apple Developer Account.*
+
+### Core Component Architecture
+- **State Management**: Localized state with persistent storage in `services/`.
+- **Navigation**: Expo Router (File-based routing) in `app/`.
+- **Verification Logic**: Puzzle success/failure callbacks in `components/SnoozeTax.js`.
+
+### Security & Integrity
+- **Anti-Cheat**: Persistent `SNOOZE_TAX_UNRESOLVED_ALARM` flag in `expo-secure-store`.
+- **Wallet**: Transactions are logged before balance is updated to ensure integrity.
+
+### Backend Monitoring
+The Go backend in `backend-go/` should be deployed as a containerized service (e.g., Docker) to provide system status and session replays for administrators.
