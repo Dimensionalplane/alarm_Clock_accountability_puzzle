@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert, Platform } from 'react-native';
 import WoodBlockPuzzle from './WoodBlockPuzzle';
+import { getActiveSnoozeCount, incrementActiveSnoozeCount } from '../services/session';
 
 export default function SnoozeTax({ settings, onSnooze, onDismissSuccess, onDismissFailure }) {
   const [showPuzzle, setShowPuzzle] = useState(false);
   const [snoozeCount, setSnoozeCount] = useState(0);
+
+  useEffect(() => {
+    loadSnoozeCount();
+  }, []);
+
+  const loadSnoozeCount = async () => {
+    const count = await getActiveSnoozeCount();
+    setSnoozeCount(count);
+  };
 
   const calculatePenalty = () => {
     const base = settings?.penaltyAmount || 1.00;
@@ -17,9 +27,10 @@ export default function SnoozeTax({ settings, onSnooze, onDismissSuccess, onDism
     return base;
   };
 
-  const handleSnoozePress = () => {
+  const handleSnoozePress = async () => {
     const penalty = calculatePenalty();
-    setSnoozeCount(prev => prev + 1);
+    const newCount = await incrementActiveSnoozeCount();
+    setSnoozeCount(newCount);
     onSnooze(penalty);
   };
 
@@ -44,7 +55,7 @@ export default function SnoozeTax({ settings, onSnooze, onDismissSuccess, onDism
       <Text style={styles.title}>WAKE UP!</Text>
       <Text style={styles.subtitle}>Current Penalty: ${currentPenalty.toFixed(2)}</Text>
       {snoozeCount > 0 && (
-        <Text style={styles.stats}>Snoozed {snoozeCount} time(s)</Text>
+        <Text style={styles.stats}>Snoozed {snoozeCount} time(s) during this alarm</Text>
       )}
 
       <View style={styles.buttonContainer}>

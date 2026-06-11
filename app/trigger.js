@@ -5,6 +5,7 @@ import { deductSnoozeTax } from '../services/wallet';
 import { snoozeAlarm } from '../services/alarm';
 import { getSettings } from '../services/settings';
 import { setItem, deleteItem } from '../services/storage';
+import { resetActiveSnoozeCount } from '../services/session';
 import SnoozeTax from '../components/SnoozeTax';
 
 const UNRESOLVED_ALARM_KEY = 'SNOOZE_TAX_UNRESOLVED_ALARM';
@@ -39,6 +40,7 @@ export default function AlarmTriggerScreen() {
 
   const onPuzzleSuccess = async () => {
     await deleteItem(UNRESOLVED_ALARM_KEY);
+    await resetActiveSnoozeCount();
     if (Platform.OS !== 'web') {
       Alert.alert('Success', "You're awake! Wallet safe.", [
         { text: 'Great!', onPress: () => router.replace('/') }
