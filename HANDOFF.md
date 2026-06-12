@@ -1,40 +1,16 @@
-# SnoozeTax Production Handoff & Deployment Guide
+# SnoozeTax Final Production Handoff
 
-### Deployment Status
-SnoozeTax is at version **1.1.0** and is ready for production builds.
+### Release Status
+SnoozeTax version **1.2.0** is the final stable release candidate.
 
-### Production Build Instructions
+### Final Feature Set
+1.  **High-Stakes Alarms**: Native notifications with Critical Alert support.
+2.  **Accountability Wallet**: Secure balance tracking with detailed transaction history.
+3.  **Spatial Puzzle Dismissal**: Custom wood block puzzle to ensure cognitive awakening.
+4.  **Integrated Dashboard**: Unified view of user metrics and system logs.
+5.  **Anti-Cheat Manager**: State persistence for penalties across app force-quits and device reboots.
 
-#### 1. Web Deployment
-Export the web-optimized bundle:
-```bash
-npm run build:web
-```
-The output will be in the `dist/` directory. This can be hosted on static platforms like Netlify, Vercel, or GitHub Pages.
-
-#### 2. Android Deployment (AAB/APK)
-Build using EAS (Expo Application Services):
-```bash
-# Ensure you have eas-cli installed: npm install -g eas-cli
-eas build --platform android
-```
-*Note: Requires an Expo account and configuration in eas.json.*
-
-#### 3. iOS Deployment (IPA)
-Build using EAS:
-```bash
-eas build --platform ios
-```
-*Note: Requires an Apple Developer Account.*
-
-### Core Component Architecture
-- **State Management**: Localized state with persistent storage in `services/`.
-- **Navigation**: Expo Router (File-based routing) in `app/`.
-- **Verification Logic**: Puzzle success/failure callbacks in `components/SnoozeTax.js`.
-
-### Security & Integrity
-- **Anti-Cheat**: Persistent `SNOOZE_TAX_UNRESOLVED_ALARM` flag in `expo-secure-store`.
-- **Wallet**: Transactions are logged before balance is updated to ensure integrity.
-
-### Backend Monitoring
-The Go backend in `backend-go/` should be deployed as a containerized service (e.g., Docker) to provide system status and session replays for administrators.
+### Deployment Summary
+- **Web**: Exported to `dist/`.
+- **Native**: Configured for `eas build`.
+- **Backend**: Go service provided in `backend-go/`.

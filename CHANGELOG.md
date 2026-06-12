@@ -1,17 +1,17 @@
 # SnoozeTax Changelog
 
+## [1.2.0] - 2024-06-11
+### Added
+- Integrated User Stats Dashboard showing Balance, Total Tax Paid, and Alarm Failures.
+- Incremental penalty persistence across app restarts during active sessions.
+- Finalized production-ready configurations for Android/iOS/Web.
+
 ## [1.1.0] - 2024-05-29
 ### Added
-- **Core Alarm Engine**: Recurring weekday support with native notification scheduling.
-- **Pre-paid Wallet**: Secure storage for balance and transaction history.
-- **Advanced Penalty Logic**: Support for both Flat and Incremental penalties (increases per snooze).
-- **Wood Block Puzzle**: Spatial reasoning dismissal mechanic with Easy/Medium/Hard difficulties.
-- **Anti-Cheat Protection**: Recovery Manager detects app force-quits and reboots during alarms to apply retroactive penalties.
-- **System Dashboard**: Integrated Go backend for real-time monitoring and log streaming.
-- **Release Ready**: Configured bundle identifiers and package names for production deployment.
-
-### Fixed
-- Stale closures in `WoodBlockPuzzle` gesture handlers using `useRef`.
-- Simultaneous row and column clearing in puzzle logic.
-- Input validation for alarm time entry (HH:MM format).
-- Responsive layout issues for puzzle grid and pieces.
+- Core Alarm Engine with recurring weekday support.
+- Pre-paid Wallet system with transaction history.
+- Wood Block Puzzle dismissal mechanic with difficulty settings.
+- Settings screen for penalty and difficulty customization.
+- Recovery Manager for anti-cheat protection.
+- Cross-platform storage support (Web/Mobile).
+- Unit tests for wallet logic.
