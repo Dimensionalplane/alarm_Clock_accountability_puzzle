@@ -28,6 +28,16 @@ type Feedback struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+// Middleware for performance monitoring
+func withMonitoring(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		duration := time.Since(start)
+		log.Printf("[MONITOR] Method: %s | URL: %s | Latency: %v", r.Method, r.URL.Path, duration)
+	}
+}
+
 func getSystemStatus(w http.ResponseWriter, r *http.Request) {
 	out, err := exec.Command("git", "submodule", "status").Output()
 	if err != nil {
@@ -71,8 +81,8 @@ func handleReplay(w http.ResponseWriter, r *http.Request) {
 
 	logs := []string{
 		"Session initialized...",
-		"Monitoring user interactions...",
-		"Feedback collection active.",
+		"Monitoring performance metrics...",
+		"Health check: OK",
 	}
 
 	for _, l := range logs {
@@ -102,7 +112,6 @@ func handleFeedback(w http.ResponseWriter, r *http.Request) {
 	logEntry := fmt.Sprintf("[%s] Rating: %d | Message: %s\n", f.Timestamp.Format(time.RFC3339), f.Rating, f.Message)
 	fmt.Print(logEntry)
 
-	// Persist to file
 	file, err := os.OpenFile("feedback.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err == nil {
 		defer file.Close()
@@ -122,10 +131,10 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/api/system/status", getSystemStatus)
+	http.HandleFunc("/api/system/status", withMonitoring(getSystemStatus))
 	http.HandleFunc("/api/replay", handleReplay)
-	http.HandleFunc("/api/feedback", handleFeedback)
-	http.HandleFunc("/api/health", handleHealth)
+	http.HandleFunc("/api/feedback", withMonitoring(handleFeedback))
+	http.HandleFunc("/api/health", withMonitoring(handleHealth))
 
 	fmt.Println("Backend-go starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
