@@ -3,8 +3,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions } from
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getBalance, getHistory } from '../services/wallet';
-
-const BACKEND_URL = 'http://localhost:8080';
+import CONFIG from '../services/config';
 
 export default function SystemDashboard() {
   const [statuses, setStatuses] = useState([]);
@@ -52,7 +51,7 @@ export default function SystemDashboard() {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/system/status`);
+      const response = await fetch(`${CONFIG.BACKEND_URL}/api/system/status`);
       const data = await response.json();
       setStatuses(data);
     } catch (error) {
@@ -63,7 +62,7 @@ export default function SystemDashboard() {
   const startReplay = () => {
     setIsReplaying(true);
     setLogs([]);
-    const ws = new WebSocket('ws://localhost:8080/api/replay');
+    const ws = new WebSocket(`${CONFIG.WS_URL}/api/replay`);
 
     ws.onmessage = (e) => {
       setLogs((prev) => [...prev, e.data]);

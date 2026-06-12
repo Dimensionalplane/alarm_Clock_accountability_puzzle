@@ -123,9 +123,15 @@ func handleFeedback(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
+    env := os.Getenv("APP_ENV")
+    if env == "" {
+        env = "development"
+    }
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"status": "up",
+        "env":    env,
 		"time":   time.Now().Format(time.RFC3339),
 	})
 }

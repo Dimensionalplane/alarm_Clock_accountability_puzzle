@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-const BACKEND_URL = 'http://localhost:8080';
+import CONFIG from '../services/config';
 
 export default function FeedbackScreen() {
   const [message, setMessage] = useState('');
@@ -19,7 +18,7 @@ export default function FeedbackScreen() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/feedback`, {
+      const response = await fetch(`${CONFIG.BACKEND_URL}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, rating }),
