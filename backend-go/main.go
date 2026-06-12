@@ -99,23 +99,33 @@ func handleFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 	f.Timestamp = time.Now()
 
-	// Log feedback to file
+	logEntry := fmt.Sprintf("[%s] Rating: %d | Message: %s\n", f.Timestamp.Format(time.RFC3339), f.Rating, f.Message)
+	fmt.Print(logEntry)
+
+	// Persist to file
 	file, err := os.OpenFile("feedback.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err == nil {
 		defer file.Close()
-		logEntry := fmt.Sprintf("[%s] Rating: %d | Message: %s\n", f.Timestamp.Format(time.RFC3339), f.Rating, f.Message)
 		file.WriteString(logEntry)
 	}
 
-	fmt.Printf("Received Feedback: %+v\n", f)
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "up",
+		"time":   time.Now().Format(time.RFC3339),
+	})
 }
 
 func main() {
 	http.HandleFunc("/api/system/status", getSystemStatus)
 	http.HandleFunc("/api/replay", handleReplay)
 	http.HandleFunc("/api/feedback", handleFeedback)
+	http.HandleFunc("/api/health", handleHealth)
 
 	fmt.Println("Backend-go starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
