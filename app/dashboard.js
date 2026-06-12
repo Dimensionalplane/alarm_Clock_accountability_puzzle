@@ -3,12 +3,14 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions } from
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getBalance, getHistory } from '../services/wallet';
+import { getAlarms } from '../services/alarm';
 import CONFIG from '../services/config';
 
 export default function SystemDashboard() {
   const [statuses, setStatuses] = useState([]);
   const [logs, setLogs] = useState([]);
   const [isReplaying, setIsReplaying] = useState(false);
+  const [userAlarms, setUserAlarms] = useState([]);
   const [userMetrics, setUserMetrics] = useState({
     balance: 0,
     totalTax: 0,
@@ -20,7 +22,13 @@ export default function SystemDashboard() {
   useEffect(() => {
     fetchStatus();
     loadUserMetrics();
+    loadAlarms();
   }, []);
+
+  const loadAlarms = async () => {
+    const alarms = await getAlarms();
+    setUserAlarms(alarms.filter(a => a.enabled));
+  };
 
   const loadUserMetrics = async () => {
     const balance = await getBalance();
@@ -108,6 +116,31 @@ export default function SystemDashboard() {
       </View>
 
       <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Active Alarms</Text>
+            <TouchableOpacity onPress={() => router.push('/')}>
+                <Text style={styles.linkText}>Edit</Text>
+            </TouchableOpacity>
+        </View>
+        {userAlarms.length > 0 ? (
+            userAlarms.map((a, i) => (
+                <View key={i} style={styles.alarmItem}>
+                    <Text style={styles.alarmTime}>{a.time}</Text>
+                    <Ionicons name="alarm-outline" size={20} color="#6c757d" />
+                </View>
+            ))
+        ) : (
+            <Text style={styles.emptyText}>No active alarms.</Text>
+        )}
+        <TouchableOpacity
+            style={[styles.testButton, { marginTop: 15 }]}
+            onPress={() => router.push('/trigger')}
+        >
+            <Text style={styles.testButtonText}>Trigger Test Alarm</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Git Submodule Status</Text>
         {statuses.length > 0 ? (
           statuses.map((s, i) => (
@@ -161,10 +194,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     elevation: 2,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 15,
     color: '#212529',
   },
   metricsGrid: {
@@ -206,6 +244,18 @@ const styles = StyleSheet.create({
     color: '#007bff',
     fontWeight: '600',
   },
+  alarmItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  alarmTime: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: '#495057',
+  },
   statusItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -222,6 +272,10 @@ const styles = StyleSheet.create({
   },
   synced: { color: '#28a745' },
   dirty: { color: '#dc3545' },
+  linkText: {
+    color: '#007bff',
+    fontWeight: '600',
+  },
   button: {
     backgroundColor: '#007bff',
     padding: 12,
@@ -233,6 +287,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#6c757d',
   },
   buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  testButton: {
+    backgroundColor: '#6c757d',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  testButtonText: {
     color: '#fff',
     fontWeight: 'bold',
   },
