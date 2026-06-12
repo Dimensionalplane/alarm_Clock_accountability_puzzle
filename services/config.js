@@ -1,10 +1,10 @@
 import { Platform } from 'react-native';
 
-const ENV = 'staging'; // Change to 'production' for release
+const ENV = 'production'; // Set to production for release
 
 const CONFIG = {
   staging: {
-    BACKEND_URL: 'http://localhost:8080', // In real staging, this would be a real URL
+    BACKEND_URL: 'http://localhost:8080',
     WS_URL: 'ws://localhost:8080',
   },
   production: {

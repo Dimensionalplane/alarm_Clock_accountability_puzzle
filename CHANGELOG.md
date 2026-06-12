@@ -1,9 +1,10 @@
 # SnoozeTax Changelog
 
-## [1.2.0] - 2024-06-11
+## [1.2.0] - 2024-06-12
 ### Added
-- Integrated User Stats Dashboard showing Balance, Total Tax Paid, and Alarm Failures.
+- Integrated User Stats Dashboard showing Balance, Total Tax Paid, Wake-ups, and Alarm Failures.
 - Incremental penalty persistence across app restarts during active sessions.
+- User Feedback collection system (Star ratings + messages).
 - Finalized production-ready configurations for Android/iOS/Web.
 
 ## [1.1.0] - 2024-05-29
