@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
-    "time"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -21,10 +22,15 @@ type SubmoduleStatus struct {
 	Status string `json:"status"` // "dirty", "uninitialized", "synced"
 }
 
+type Feedback struct {
+	Message   string    `json:"message"`
+	Rating    int       `json:"rating"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 func getSystemStatus(w http.ResponseWriter, r *http.Request) {
 	out, err := exec.Command("git", "submodule", "status").Output()
 	if err != nil {
-		// If no submodules, return empty list
 		json.NewEncoder(w).Encode([]SubmoduleStatus{})
 		return
 	}
@@ -63,13 +69,10 @@ func handleReplay(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	// Mock log streaming for Session Replay
 	logs := []string{
 		"Session initialized...",
-		"Agent Architect: Analyzing requirements...",
-		"Agent Engineer: Implementing Wallet Service...",
-		"Agent Auditor: Verifying security constraints...",
-		"Build successful. Monitoring for anomalies...",
+		"Monitoring user interactions...",
+		"Feedback collection active.",
 	}
 
 	for _, l := range logs {
@@ -82,9 +85,37 @@ func handleReplay(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleFeedback(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var f Feedback
+	err := json.NewDecoder(r.Body).Decode(&f)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	f.Timestamp = time.Now()
+
+	// Log feedback to file
+	file, err := os.OpenFile("feedback.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err == nil {
+		defer file.Close()
+		logEntry := fmt.Sprintf("[%s] Rating: %d | Message: %s\n", f.Timestamp.Format(time.RFC3339), f.Rating, f.Message)
+		file.WriteString(logEntry)
+	}
+
+	fmt.Printf("Received Feedback: %+v\n", f)
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
 func main() {
 	http.HandleFunc("/api/system/status", getSystemStatus)
 	http.HandleFunc("/api/replay", handleReplay)
+	http.HandleFunc("/api/feedback", handleFeedback)
 
 	fmt.Println("Backend-go starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

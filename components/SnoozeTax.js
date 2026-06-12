@@ -38,13 +38,18 @@ export default function SnoozeTax({ settings, onSnooze, onDismissSuccess, onDism
     setShowPuzzle(true);
   };
 
+  const handleDismissFailure = (reason) => {
+    const penalty = calculatePenalty();
+    onDismissFailure(reason, penalty);
+  };
+
   const currentPenalty = calculatePenalty();
 
   if (showPuzzle) {
     return (
       <WoodBlockPuzzle
         onSuccess={onDismissSuccess}
-        onFailure={onDismissFailure}
+        onFailure={handleDismissFailure}
         settings={settings}
       />
     );

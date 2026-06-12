@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getBalance, getHistory } from '../services/wallet';
 
@@ -15,6 +16,7 @@ export default function SystemDashboard() {
     successCount: 0,
     failCount: 0
   });
+  const router = useRouter();
 
   useEffect(() => {
     fetchStatus();
@@ -99,6 +101,11 @@ export default function SystemDashboard() {
             <Text style={styles.metricValue}>{userMetrics.failCount}</Text>
           </View>
         </View>
+
+        <TouchableOpacity style={styles.feedbackButton} onPress={() => router.push('/feedback')}>
+          <Ionicons name="chatbubble-ellipses-outline" size={20} color="#007bff" />
+          <Text style={styles.feedbackButtonText}>Send Feedback</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -166,6 +173,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: 15,
+    marginBottom: 20,
   },
   metricItem: {
     width: '45%',
@@ -184,6 +192,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#212529',
+  },
+  feedbackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#007bff',
+    borderRadius: 10,
+  },
+  feedbackButtonText: {
+    color: '#007bff',
+    fontWeight: '600',
   },
   statusItem: {
     flexDirection: 'row',

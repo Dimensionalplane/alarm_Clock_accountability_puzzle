@@ -51,8 +51,8 @@ export default function AlarmTriggerScreen() {
     }
   };
 
-  const onPuzzleFailure = async (reason) => {
-    const penalty = settings?.penaltyAmount || 1.00;
+  const onPuzzleFailure = async (reason, penaltyAmount) => {
+    const penalty = penaltyAmount !== undefined ? penaltyAmount : (settings?.penaltyAmount || 1.00);
     await deductSnoozeTax(penalty, `Alarm Failure: ${reason}`);
     await snoozeAlarm({ id: 'failed' }, 5);
     await deleteItem(UNRESOLVED_ALARM_KEY);
