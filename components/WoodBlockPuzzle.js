@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, PanResponder, Animated, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, PanResponder, Animated, Dimensions, TouchableOpacity } from 'react-native';
 
 const GRID_SIZE = 5;
 const CELL_SIZE = Math.min(50, (Dimensions.get('window').width - 60) / GRID_SIZE);
@@ -18,7 +18,6 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
   const [timeLeft, setTimeLeft] = useState(settings?.puzzleTimer || 60);
   const [gridLayout, setGridLayout] = useState({ x: 0, y: 0 });
 
-  // Use refs to avoid stale closures in PanResponder
   const gridRef = useRef(grid);
   const piecesRef = useRef(pieces);
   const containerRef = useRef(null);
@@ -71,7 +70,6 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
     const gridX = Math.round((gestureX - gridLayout.x) / CELL_SIZE);
     const gridY = Math.round((gestureY - gridLayout.y) / CELL_SIZE);
 
-    // Validate placement
     for (const [dx, dy] of piece.cells) {
       const nx = gridX + dx;
       const ny = gridY + dy;
@@ -80,13 +78,11 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
       }
     }
 
-    // Place piece
     const newGrid = currentGrid.map(row => [...row]);
     for (const [dx, dy] of piece.cells) {
       newGrid[gridY + dy][gridX + dx] = 1;
     }
 
-    // Identify lines to clear
     const rowsToClear = [];
     const colsToClear = [];
 
@@ -109,7 +105,6 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
       }
     }
 
-    // Clear lines
     const finalGrid = newGrid.map(row => [...row]);
     rowsToClear.forEach(y => {
       finalGrid[y] = Array(GRID_SIZE).fill(0);
@@ -138,12 +133,19 @@ export default function WoodBlockPuzzle({ onSuccess, onFailure, settings }) {
     return true;
   };
 
+  const handleGiveUp = () => {
+    onFailure('User Surrender');
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.timerContainer}>
+      <View style={styles.header}>
         <Text style={[styles.timerText, timeLeft <= 10 && styles.timerUrgent]}>
           Time: {timeLeft}s
         </Text>
+        <TouchableOpacity style={styles.giveUpButton} onPress={handleGiveUp}>
+          <Text style={styles.giveUpText}>Give Up & Pay</Text>
+        </TouchableOpacity>
       </View>
 
       <View
@@ -189,7 +191,6 @@ function DraggablePiece({ piece, onDrop }) {
         if (!success) {
           Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
         } else {
-          // Success! Reset position for next use (though this piece instance is removed)
           pan.setValue({ x: 0, y: 0 });
         }
       },
@@ -228,8 +229,13 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
-  timerContainer: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
     marginBottom: 20,
+    paddingHorizontal: 10,
   },
   timerText: {
     fontSize: 24,
@@ -238,6 +244,18 @@ const styles = StyleSheet.create({
   },
   timerUrgent: {
     color: '#dc3545',
+  },
+  giveUpButton: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dc3545',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+  },
+  giveUpText: {
+    color: '#dc3545',
+    fontWeight: '600',
   },
   grid: {
     borderWidth: 2,

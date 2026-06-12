@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from 'react
 import { getBalance, getHistory, topUp } from '../services/wallet';
 import { Ionicons } from '@expo/vector-icons';
 
+const TOP_UP_AMOUNTS = [5, 10, 25, 50];
+
 export default function WalletScreen() {
   const [balance, setBalance] = useState(0);
   const [history, setHistory] = useState([]);
@@ -18,8 +20,7 @@ export default function WalletScreen() {
     setHistory(currentHistory);
   };
 
-  const handleTopUp = async () => {
-    const amount = 10.00;
+  const handleTopUp = async (amount) => {
     const newBalance = await topUp(amount);
     setBalance(newBalance);
     const updatedHistory = await getHistory();
@@ -44,9 +45,18 @@ export default function WalletScreen() {
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Current Balance</Text>
         <Text style={styles.balanceValue}>${balance.toFixed(2)}</Text>
-        <TouchableOpacity style={styles.topUpButton} onPress={handleTopUp}>
-          <Text style={styles.topUpButtonText}>Top Up $10</Text>
-        </TouchableOpacity>
+
+        <View style={styles.topUpRow}>
+          {TOP_UP_AMOUNTS.map((amount) => (
+            <TouchableOpacity
+              key={amount}
+              style={styles.topUpOption}
+              onPress={() => handleTopUp(amount)}
+            >
+              <Text style={styles.topUpOptionText}>+${amount}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <Text style={styles.historyTitle}>Transaction History</Text>
@@ -90,16 +100,24 @@ const styles = StyleSheet.create({
     color: '#212529',
     marginBottom: 20,
   },
-  topUpButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
+  topUpRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
   },
-  topUpButtonText: {
+  topUpOption: {
+    backgroundColor: '#007bff',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    minWidth: '22%',
+    alignItems: 'center',
+  },
+  topUpOptionText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   historyTitle: {
     fontSize: 20,

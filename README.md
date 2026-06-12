@@ -4,7 +4,7 @@ SnoozeTax is a brutally effective alarm clock app designed to leverage "loss ave
 
 ## 🚀 How It Works
 
-1. **Pre-paid Wallet**: Top up your in-app wallet with credits.
+1. **Pre-paid Wallet**: Top up your in-app wallet with credits ($5, $10, $25, or $50).
 2. **Set Your Alarm**: Choose your wake-up time and the days you want it to fire.
 3. **Accountability**:
    - **Snooze**: Tapping "Snooze" immediately deducts a penalty from your wallet and reschedules the alarm for 9 minutes.
@@ -12,6 +12,7 @@ SnoozeTax is a brutally effective alarm clock app designed to leverage "loss ave
 4. **The Dismissal (The Wood Block Puzzle)**:
    - To turn off the alarm, you must solve a spatial wood block puzzle.
    - Clear a line (or more on Hard difficulty) within the time limit to prove you're awake.
+   - **Give Up Option**: If the puzzle is too challenging at 6 AM, use the "Give Up & Pay" button to skip the puzzle at the cost of an additional penalty.
    - Failure to solve the puzzle results in a penalty and a 5-minute snooze cycle.
 
 ## 🛠 Features
@@ -26,29 +27,6 @@ SnoozeTax is a brutally effective alarm clock app designed to leverage "loss ave
 - **Frontend**: React Native / Expo (SDK 52) with Expo Router.
 - **Backend**: Go (Golang) for system monitoring and log streaming.
 - **Storage**: Secure local storage for wallet balance and transaction logs.
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- Go (v1.20+)
-
-### 1. Install Dependencies
-```bash
-npm install --legacy-peer-deps
-```
-
-### 2. Start the App
-```bash
-npx expo start
-```
-Scan the QR code with the Expo Go app on your phone.
-
-### 3. Run the Backend (Optional - for Dashboard)
-```bash
-cd backend-go
-go run main.go
-```
 
 ## 🧪 Testing
 Run the Jest test suite:
