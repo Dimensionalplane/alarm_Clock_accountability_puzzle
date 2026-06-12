@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Alert, SafeAreaView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { deductSnoozeTax } from '../services/wallet';
+import { deductSnoozeTax, logSuccess } from '../services/wallet';
 import { snoozeAlarm } from '../services/alarm';
 import { getSettings } from '../services/settings';
 import { setItem, deleteItem } from '../services/storage';
@@ -40,6 +40,7 @@ export default function AlarmTriggerScreen() {
 
   const onPuzzleSuccess = async () => {
     await deleteItem(UNRESOLVED_ALARM_KEY);
+    await logSuccess('Cognitive Dismissal Success');
     await resetActiveSnoozeCount();
     if (Platform.OS !== 'web') {
       Alert.alert('Success', "You're awake! Wallet safe.", [

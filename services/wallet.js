@@ -18,7 +18,7 @@ export async function getHistory() {
   return history ? JSON.parse(history) : [];
 }
 
-async function addHistoryEntry(type, amount, description) {
+export async function addHistoryEntry(type, amount, description) {
   const history = await getHistory();
   const entry = {
     id: Date.now().toString(),
@@ -48,4 +48,8 @@ export async function deductSnoozeTax(amount = null, reason = 'Snooze Tax') {
   await setBalance(newBalance);
   await addHistoryEntry('tax', taxAmount, reason);
   return newBalance;
+}
+
+export async function logSuccess(reason = 'Successful Dismissal') {
+  await addHistoryEntry('success', 0, reason);
 }

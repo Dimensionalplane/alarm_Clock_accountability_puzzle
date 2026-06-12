@@ -32,20 +32,18 @@ export default function SystemDashboard() {
     history.forEach(entry => {
       if (entry.type === 'tax') {
         totalTax += entry.amount;
-        if (entry.description.includes('Failure')) {
+        if (entry.description.includes('Failure') || entry.description.includes('Avoidance')) {
           failCount++;
         }
-      } else if (entry.description.includes('Success')) {
-          // Note: In our current implementation we don't always log success entries to history
-          // But we can infer success if we implement it.
-          // For now let's use what we have.
+      } else if (entry.type === 'success') {
+          successCount++;
       }
     });
 
     setUserMetrics({
       balance,
       totalTax,
-      successCount, // Placeholder or implement success logging
+      successCount,
       failCount
     });
   };
@@ -82,18 +80,22 @@ export default function SystemDashboard() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>User Stats</Text>
+        <Text style={styles.sectionTitle}>User Accountability</Text>
         <View style={styles.metricsGrid}>
           <View style={styles.metricItem}>
             <Text style={styles.metricLabel}>Balance</Text>
             <Text style={styles.metricValue}>${userMetrics.balance.toFixed(2)}</Text>
           </View>
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Total Tax Paid</Text>
+            <Text style={styles.metricLabel}>Snooze Tax</Text>
             <Text style={[styles.metricValue, { color: '#dc3545' }]}>${userMetrics.totalTax.toFixed(2)}</Text>
           </View>
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>Alarm Failures</Text>
+            <Text style={styles.metricLabel}>Wake-ups</Text>
+            <Text style={[styles.metricValue, { color: '#28a745' }]}>{userMetrics.successCount}</Text>
+          </View>
+          <View style={styles.metricItem}>
+            <Text style={styles.metricLabel}>Failures</Text>
             <Text style={styles.metricValue}>{userMetrics.failCount}</Text>
           </View>
         </View>
@@ -163,11 +165,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 15,
   },
   metricItem: {
-    width: '30%',
+    width: '45%',
     alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 10,
   },
   metricLabel: {
     fontSize: 12,
@@ -176,7 +181,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   metricValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#212529',
   },
